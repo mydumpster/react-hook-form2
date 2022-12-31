@@ -2,8 +2,12 @@ import { Input } from "../../components/Form/Input";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { registerSchema } from "./registerSchema";
+import { useState } from "react";
+import { api } from "../../api";
+import { toast } from "react-toastify";
 
 export const RegisterPage = () => {
+  const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -11,22 +15,41 @@ export const RegisterPage = () => {
     reset,
   } = useForm({
     mode: "onChange",
-    defaultValues: {
-      name: "Batatinha",
-      email: "",
-      password: "",
-    },
+    // para setar valores padrão:
+    //
+    // defaultValues: {
+    //   name: "Batatinha",
+    //   email: "",
+    //   password: "",
+    // },
     resolver: yupResolver(registerSchema),
   });
 
-  const submit = (data) => {
-    console.log(data);
-    // reset();
-    reset({
-      name: "Batatinha",
-      email: "",
-      password: "",
-    });
+  const userRegister = async (formData) => {
+    try {
+      setLoading(true);
+      const response = await api.post("/users", formData);
+      // console.log("response ", response);
+      toast.success(response.statusText);
+    } catch (error) {
+      // console.log("error ", error);
+      toast.error(error.response.data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submit = async (data) => {
+    const { passwordConfirmation, ...rest } = data;
+    await userRegister(rest);
+    reset();
+    // para resetar com valores específicos:
+    //
+    // reset({
+    //   name: "Batatinha",
+    //   email: "",
+    //   password: "",
+    // });
   };
 
   return (
@@ -37,6 +60,7 @@ export const RegisterPage = () => {
         label="Nome: "
         placeholder="Digite o seu nome"
         register={register("name")}
+        disabled={loading}
       />
       {errors.name && <p>{errors.name.message}</p>}
 
@@ -46,6 +70,7 @@ export const RegisterPage = () => {
         label="Email: "
         placeholder="Digite o seu e-mail"
         register={register("email")}
+        disabled={loading}
       />
       {errors.email && <p>{errors.email.message}</p>}
 
@@ -55,10 +80,25 @@ export const RegisterPage = () => {
         label="Senha: "
         placeholder="Crie a sua senha"
         register={register("password")}
+        disabled={loading}
       />
       {errors.password && <p>{errors.password.message}</p>}
 
-      <button type="submit">Cadastrar</button>
+      <Input
+        id="passwordConfirmation"
+        type="password"
+        label="Confirme a senha: "
+        placeholder="Confirme a sua senha"
+        register={register("passwordConfirmation")}
+        disabled={loading}
+      />
+      {errors.passwordConfirmation && (
+        <p>{errors.passwordConfirmation.message}</p>
+      )}
+
+      <button type="submit" disabled={loading}>
+        {loading ? "Cadastrando..." : "Cadastrar"}
+      </button>
     </form>
   );
 };
