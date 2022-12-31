@@ -8,12 +8,25 @@ export const RegisterPage = () => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      name: "Batatinha",
+      email: "",
+      password: "",
+    },
     resolver: yupResolver(registerSchema),
   });
 
   const submit = (data) => {
     console.log(data);
+    // reset();
+    reset({
+      name: "Batatinha",
+      email: "",
+      password: "",
+    });
   };
 
   return (
